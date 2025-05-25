@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LawBot Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background-color: #1f2937;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+
+    .chat-message {
+      max-width: 70%;
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 1rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      position: relative;
+    }
+
+    .chat-message.user {
+      align-self: flex-end;
+      background-color: #dbeafe;
+      color: #1e3a8a;
+    }
+
+    .chat-message.bot {
+      align-self: flex-start;
+      background-color: #e5e7eb;
+      color: #111827;
+    }
+
+    .timestamp {
+      font-size: 0.7rem;
+      color: #6b7280;
+      position: absolute;
+      bottom: -1.2rem;
+      right: 0.5rem;
+    }
+
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #e5e7eb;
+      padding: 1rem;
+      background-color: white;
+    }
+
+    .chat-input textarea {
+      flex: 1;
+      resize: none;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .chat-input button {
+      margin-left: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      background-color: #1d4ed8;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chat-input button[type="button"] {
+      background-color: #10b981;
+    }
+
+    .chat-input button[type="button"]:hover {
+      background-color: #059669;
+    }
+
+    form {
+      width: 100%;
+    }
+
+    .clear {
+      background: #e74c3c;
+      margin: 10px;
+      padding: 10px 20px;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .read-btn {
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    #readBtn {
+      padding: 8px 16px;
+      font-size: 1rem;
+      border-radius: 6px;
+      background-color: #1d4ed8;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    #loading {
+      text-align: center;
+      padding: 0.5rem;
+      font-weight: bold;
+      color: #6b7280;
+    }
+  </style>
+</head>
+
+<body>
+  <header><i class="fa-solid fa-scale-balanced"></i> AiLA <i class="fa-solid fa-scale-balanced"></i></header>
+
+  <div style="padding: 0.5rem 1rem; background:#e0e7ff; display: flex; justify-content: space-between; align-items: center;">
+    <div><strong><i class="fa-solid fa-user"></i> </strong> {{ username }}</div>
+    <div>
+      <a href="{{ url_for('dashboard') }}"
+        style="margin-right: 1rem; font-weight: bold; color: #1d4ed8; text-decoration: none;">
+        <i class="fa-solid fa-arrow-left"></i> Dashboard
+      </a>
+      <a href="{{ url_for('logout') }}" style="font-weight: bold; color: #ef4444; text-decoration: none;">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+      </a>
+    </div>
+  </div>
+
+  <div id="loading" style="display:none;">🤖 Thinking...</div>
+
+  <div class="chat-container" id="chatContainer">
+    {% for entry in history %}
+    <div class="chat-message {{ entry.role }}">
+      <strong>{{ entry.role.capitalize() }}:</strong> {{ entry.content }}
+      <div class="timestamp">{{ entry.timestamp }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="read-btn">
+    <button id="readBtn" onclick="toggleSpeech()"><i class="fa-solid fa-volume-high"></i> Read Last Answer</button>
+  </div>
+
+  <div class="chat-input">
+    <form method="POST" id="question-form" style="display: flex; width: 100%;">
+      <textarea id="questionInput" name="question" rows="2" placeholder="Ask a legal question..." required></textarea>
+      <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+      <button type="button" onclick="startRecognition()"><i class="fa-solid fa-microphone"></i></button>
+    </form>
+  </div>
+
+  <form method="POST" action="/new_chat">
+    <button type="submit" class="clear"><i class="fa-solid fa-plus"></i> New Chat</button>
+  </form>
+
+  <script>
+    function startRecognition() {
+      if (!('webkitSpeechRecognition' in window)) {
+        alert("Your browser doesn't support speech recognition. Try using Chrome.");
+        return;
+      }
+      const recognition = new webkitSpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.start();
+      recognition.onresult = function (event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('questionInput').value = transcript;
+      };
+      recognition.onerror = function (event) {
+        alert("Speech recognition error: " + event.error);
+      };
+    }
+
+    let isSpeaking = false;
+    let utterance;
+
+    function toggleSpeech() {
+      const btn = document.getElementById("readBtn");
+
+      if (!('speechSynthesis' in window)) {
+        alert("Speech synthesis not supported in this browser.");
+        return;
+      }
+
+      if (isSpeaking) {
+        window.speechSynthesis.cancel();
+        isSpeaking = false;
+        btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Read Last Answer';
+      } else {
+        const botMessages = document.querySelectorAll('.chat-message.bot');
+        if (botMessages.length === 0) {
+          alert("No bot response to read.");
+          return;
+        }
+        const lastBotMessage = botMessages[botMessages.length - 1].textContent.trim();
+        utterance = new SpeechSynthesisUtterance(lastBotMessage);
+        utterance.lang = 'en-US';
+        utterance.onend = () => {
+          isSpeaking = false;
+          btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Read Last Answer';
+        };
+        window.speechSynthesis.speak(utterance);
+        isSpeaking = true;
+        btn.innerHTML = '<i class="fa-solid fa-stop"></i> Stop Reading';
+      }
+    }
+
+    window.onload = function () {
+      const container = document.getElementById("chatContainer");
+      container.scrollTop = container.scrollHeight;
+    };
+
+    document.getElementById("question-form").onsubmit = function () {
+      document.getElementById("loading").style.display = "block";
+    };
+  </script>
+</body>
+
+</html>

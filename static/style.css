@@ -1,0 +1,25 @@
+.clear {
+    background: #e74c3c;
+    margin-top: 10px;
+  }
+  
+  .chat-box {
+    margin-top: 20px;
+    background: #f4f4f4;
+    padding: 15px;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .msg {
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 6px;
+  }
+  .msg.user {
+    background: #dff9fb;
+  }
+  .msg.bot {
+    background: #dcdde1;
+  }
+  

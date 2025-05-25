@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>AiLA - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <!-- Font Awesome CDN for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background-color: #f0f4f8;
+      color: #111827;
+    }
+
+    header {
+      position: relative;
+      background-color: #1f2937;
+      color: white;
+      padding: 1.25rem 3rem;
+      font-size: 2rem;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Center title text */
+    header .title {
+      flex: 1;
+      text-align: center;
+      font-weight: 600;
+      font-size: 2rem;
+    }
+
+    /* Profile container - left */
+    .profile {
+      position: absolute;
+      left: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.1rem;
+      font-weight: 500;
+      cursor: default;
+    }
+
+    .profile i {
+      font-size: 1.6rem;
+      color: #3b82f6;
+      /* Blue accent */
+    }
+
+    /* Logout button - right */
+    .logout-button {
+      position: absolute;
+      right: 2rem;
+      background-color: #ef4444;
+      color: white;
+      padding: 0.4rem 1rem;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 0.4rem;
+      text-decoration: none;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .logout-button:hover {
+      background-color: #dc2626;
+    }
+
+    .logout-button i {
+      font-size: 1.2rem;
+    }
+
+    /* Rest of your styles... */
+    .container {
+      padding: 2rem;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    h2 {
+      color: #1d4ed8;
+    }
+
+    p {
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background-color: #1d4ed8;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.3s;
+      margin-right: 10px;
+    }
+
+    .button:hover {
+      background-color: #2563eb;
+    }
+
+    .chat-list {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-list h3 {
+      margin-bottom: 1rem;
+    }
+
+    .chat-list ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .chat-list li {
+      margin-bottom: 0.75rem;
+    }
+
+    .chat-link {
+      text-decoration: none;
+      color: #1d4ed8;
+      font-weight: 500;
+    }
+
+    .chat-link:hover {
+      text-decoration: underline;
+    }
+
+    .cyber-btn {
+      display: inline-block;
+      margin: 10px 0;
+      padding: 10px 20px;
+      background-color: #0ea5e9;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .cyber-btn:hover {
+      background-color: #0284c7;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="profile">
+      <i class="fa-solid fa-user"></i>
+      {{ username }}
+    </div>
+    <div class="title">🤖 AiLA - Your Legal Assistant</div>
+    <a href="{{ url_for('logout') }}" class="logout-button">
+      <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </a>
+  </header>
+
+  <div class="container">
+    <h2>Welcome to AiLA</h2>
+    <p>
+      <strong>AiLA</strong> (Artificial Intelligence Legal Assistant) is a smart legal chatbot designed to help
+      individuals understand and navigate legal questions.
+      Powered by advanced language models, AiLA can answer queries in both <strong>English</strong> and
+      <strong>Tamil</strong>, making legal information more accessible to a wider audience.
+    </p>
+    <p>
+      Whether you're curious about your fundamental rights, legal procedures, or need help understanding legal
+      terminology, AiLA is here to assist — clearly, quickly, and efficiently.
+      It even identifies vague questions and asks for clarification, ensuring you get accurate and meaningful
+      answers every time.
+    </p>
+    <p>
+      This tool aims to promote <strong>legal literacy</strong> among citizens, especially students, individuals without
+      legal backgrounds, and anyone who wants to make informed decisions.
+    </p>
+    <a href="{{ url_for('chat') }}" class="button">Launch New Chat</a>
+
+    <a href="{{ url_for('ask_cyber') }}" class="cyber-btn">🛡️ Ask Cyber</a>
+
+
+    <div class="chat-list">
+      <h3>Your Previous Chat Sessions</h3>
+      {% if sessions %}
+      <ul>
+        {% for session in sessions %}
+        <li>
+          <a href="{{ url_for('view_chat', session_id=session.id) }}" class="chat-link">
+            Session #{{ session.id }} - {{ session.created_at }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>No previous chat sessions found.</p>
+      {% endif %}
+    </div>
+  </div>
+</body>
+
+</html>
